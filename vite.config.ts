@@ -6,5 +6,11 @@ export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
     exclude: ['lucide-react'],
+    include: ['lodash']
+  },
+  build: {
+    commonjsOptions: {
+      include: [/node_modules/],
+    },
   },
 });
