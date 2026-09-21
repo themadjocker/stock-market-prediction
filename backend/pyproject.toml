@@ -1,0 +1,27 @@
+[project]
+name = "stock-market-prediction-backend"
+version = "0.1.0"
+description = "FastAPI backend for the Stock Market Prediction platform"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "alembic>=1.20.0",
+    "apscheduler>=3.11.3",
+    "fastapi>=0.141.1",
+    "httpx>=0.28.1",
+    "loguru>=0.7.3",
+    "psycopg[binary]>=3.3.6",
+    "pydantic-settings>=2.15.0",
+    "redis>=8.1.0",
+    "sqlalchemy>=2.0.54",
+    "uvicorn[standard]>=0.53.0"
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "ruff>=0.13",
+    "pyright>=1.1"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
