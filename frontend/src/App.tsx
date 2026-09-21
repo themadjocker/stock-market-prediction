@@ -1,5 +1,17 @@
-import React, { useState } from 'react';
-import { Bell, Mail, Search, Settings, Home, Wallet, Newspaper, BarChart2, Users, PhoneCall } from 'lucide-react';
+import { useState } from 'react';
+import {
+  Bell,
+  Mail,
+  Search,
+  Settings,
+  Home,
+  Wallet,
+  Newspaper,
+  BarChart2,
+  Users,
+  PhoneCall,
+  type LucideIcon,
+} from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { clsx } from 'clsx';
 
@@ -16,6 +28,8 @@ const generateDummyData = () => {
     value: 150 + Math.random() * 50
   }));
 };
+
+
 
 function App() {
   const [selectedStock, setSelectedStock] = useState(stocks[0]);
@@ -152,7 +166,7 @@ function App() {
   );
 }
 
-function NavItem({ icon: Icon, label, active }: { icon: any, label: string, active?: boolean }) {
+function NavItem({ icon: Icon, label, active }: { icon: LucideIcon, label: string, active?: boolean }) {
   return (
     <button
       className={clsx(
