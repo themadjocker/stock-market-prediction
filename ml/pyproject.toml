@@ -8,6 +8,7 @@ dependencies = [
     "pandas>=3.0.6",
     "scikit-learn>=1.9.1",
     "scipy>=1.18.1",
+    "ta-lib>=0.8.1",
     "torch>=2.14.0",
     "xgboost>=3.4.1",
     "yfinance>=1.7.0",
@@ -17,3 +18,7 @@ dependencies = [
 dev = [
     "pytest>=8",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".."]
