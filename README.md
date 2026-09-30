@@ -1,194 +1,170 @@
-# Stock Market Prediction
-https://delightful-conkies-82be02.netlify.app/
+<div align="center">
 
-## Package manager
+# 📈 Stock Market Prediction
 
-This project uses **pnpm**. Do not commit `package-lock.json`; the canonical lockfile is `pnpm-lock.yaml`.
+**A multi-layer stock forecasting system: React frontend · FastAPI backend · Python ML pipeline**
 
-### Setup
+<p>
+  <a href="https://react.dev/"><img alt="React" src="https://img.shields.io/badge/Frontend-React-61DAFB?logo=react&logoColor=white"></a>
+  <a href="https://fastapi.tiangolo.com/"><img alt="FastAPI" src="https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi&logoColor=white"></a>
+  <a href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/ML-Python-3776AB?logo=python&logoColor=white"></a>
+  <a href="https://pnpm.io/"><img alt="pnpm" src="https://img.shields.io/badge/pnpm-F69220?logo=pnpm&logoColor=white"></a>
+  <a href="https://docs.astral.sh/uv/"><img alt="uv" src="https://img.shields.io/badge/uv-261230?logo=astral&logoColor=white"></a>
+</p>
 
-```bash
-corepack enable
-corepack prepare pnpm@11.27.1 --activate
-pnpm install
-```
+### 🌐 [Live Application](https://delightful-conkies-82be02.netlify.app/)
 
-If Corepack is unavailable on your machine, install pnpm 11 directly and then run `pnpm install`.
+</div>
 
-### Development
+---
 
-```bash
-pnpm dev
-```
+## 🧭 What Is This?
 
-### Build
+A forecasting system built toward **multi-stock prediction**, with reproducible data pipelines, leakage-safe validation, measurable out-of-sample evaluation, and a clean split between data, ML, backend and frontend.
 
-```bash
-pnpm build
-```
+---
 
-### Lint
+## 🔄 How It Works
 
-```bash
-pnpm lint
-```
+```mermaid
+flowchart LR
+    subgraph ML["🧠 ML Pipeline"]
+        direction LR
+        A["📈 Market Data"] --> B["🧹 Ingest & Validate"]
+        B --> C["🧬 Features & Targets"]
+        C --> D["🗃️ Dataset Builder"]
+        D --> E["🔒 Leakage-Safe Validation"]
+        E --> M1["Naive Baseline"]
+        E --> M2["XGBoost"]
+        E --> M3["LSTM / Transformer"]
+        E --> M4["Foundation Models"]
+        M1 & M2 & M3 & M4 --> F["📊 Evaluation & Backtest"]
+    end
 
-### Preview
+    subgraph APP["🖥️ Application"]
+        direction LR
+        G["⚡ FastAPI Serving"] --> H["🖥️ React Frontend"]
+    end
 
-```bash
-pnpm preview
-```
+    F --> G
 
-## Python environments
-
-Backend environment:
-
-```bash
-uv sync --directory backend
-```
-
-ML environment:
-
-```bash
-uv sync --project ml
-```
-
-## Project structure
-
-```text
-frontend/   React + Vite frontend
-backend/    FastAPI backend
-ml/         Data, features, models, training, evaluation
-data/       Local datasets and data markers
-docs/       Engineering notes and updates
+    classDef ml fill:#063d24,stroke:#19a463,color:#ffffff;
+    classDef model fill:#092f22,stroke:#147a4b,color:#ffffff;
+    classDef app fill:#0b2a4a,stroke:#3b82c4,color:#ffffff;
+    class A,B,C,D,E,F ml;
+    class M1,M2,M3,M4 model;
+    class G,H app;
 ```
 
 ---
 
-# 📜 Project Update Log
+## 🧰 Tech Stack
 
-> A chronological record of the engineering milestones, decisions, validations, and major changes made throughout the project.
+| 🖥️ Frontend | ⚡ Backend | 🧠 ML | 📈 Data | 📦 Tooling |
+|:-:|:-:|:-:|:-:|:-:|
+| React + Vite | FastAPI | Python | `yfinance` | `pnpm` · `uv` |
 
 ---
 
-<details open>
-<summary><h2>🚀 Update 001 · ML Data Foundation</h2></summary>
+## ⚙️ Quick Start
 
-**📅 Date:** September 21, 2026
-**🟢 Status:** Complete
+```bash
+corepack enable && corepack prepare pnpm@11.27.1 --activate   # or install pnpm 11 directly
+pnpm install                        # frontend deps
+uv sync --directory backend         # backend env
+uv sync --project ml                # ML env
 
-### 🎯 What changed
+pnpm dev                            # start the frontend
+```
 
-The first production-oriented market-data foundation for the forecasting pipeline was established.
+Also available: `pnpm build` · `pnpm lint` · `pnpm preview`
 
-The project moved from a frontend-focused application toward a multi-stock machine-learning pipeline with reproducible market-data ingestion and validation.
+> 💡 Use **pnpm** only. Don't commit `package-lock.json`; `pnpm-lock.yaml` is the canonical lockfile.
 
-### 🧩 Implemented
+---
 
-| Area           | Implementation                                     |
-| -------------- | -------------------------------------------------- |
-| 🌐 Universe    | Fixed 50-stock diversified US development universe |
-| 📡 Data source | `yfinance`                                         |
-| 🕐 Frequency   | Daily market sessions                              |
-| 📦 Storage     | Per-ticker CSV files under `data/raw/`             |
-| 🧱 Schema      | Canonical OHLCV + adjusted-close schema            |
-| 🔍 Validation  | Automated structural and market-data sanity checks |
-| 📊 Audit       | Corpus-level coverage and integrity audit          |
-| 🗓️ Alignment  | Exact trading-session alignment across all tickers  |
-
-### 📈 Verified Dataset
-
-| Metric                     |                      Result |
-| -------------------------- | --------------------------: |
-| **Development tickers**    |                      **50** |
-| **Total rows**             |                  **62,750** |
-| **Rows per ticker**        |                   **1,255** |
-| **Historical range**       | **2021-09-20 → 2026-09-18** |
-| **Duplicate sessions**     |                       **0** |
-| **Missing values**         |                       **0** |
-| **Identical session sets** |                     **Yes** |
-
-### 🔎 Corpus Verification
+## 📁 Project Structure
 
 ```text
-TICKERS: 50
-TOTAL ROWS: 62750
-
-UNIQUE ROW COUNTS: 1
-UNIQUE START DATES: 1
-UNIQUE END DATES: 1
-
-TOTAL DUPLICATES: 0
-TOTAL MISSING VALUES: 0
-
-STATUS: AUDIT COMPLETE
+📦 stock-market-prediction/
+├── 🖥️ frontend/    → React + Vite app
+├── ⚡ backend/     → FastAPI service
+├── 🧠 ml/          → data · features · models · training · evaluation
+├── 📊 data/        → local datasets & markers
+├── 📚 docs/        → engineering notes (docs/updates/)
+└── 📖 README.md
 ```
 
-### 🗓️ Trading-Session Alignment
+---
 
-```text
-TICKERS: 50
-UNIQUE DATE SETS: 1
-COMMON DATES: 1255
-UNION DATES: 1255
+## 📊 Development Status
 
-ALL DATE SETS IDENTICAL: True
-```
+**3 / 9 milestones done** · `🟩🟩🟩⬜⬜⬜⬜⬜⬜`
 
-### 🧠 Engineering Notes
+| Phase | Covers | Status |
+|:------|:-------|:------:|
+| 📊 Data & Features | Data foundation, target/feature foundation | ✅ Done |
+| 🗃️ Dataset Builder | Features + targets + metadata | ✅ Done |
+| 🔒 Validation | Leakage-safe, chronological splits | 🔜 Next |
+| 🤖 Modeling | Model training, forecasting evaluation, backtesting | ⏳ Pending |
+| 🔌 Integration | API integration, frontend ML integration | ⏳ Pending |
 
-The 50-stock universe is currently a **development universe**, not the final research universe.
+---
 
-The ingestion layer converts the provider-specific dataframe format into a stable internal schema:
+## 📜 Project Updates
 
-```text
-session_date
-ticker
-open
-high
-low
-close
-adj_close
-volume
-```
+<details>
+<summary><b>📜 Update Log</b> (click to expand)</summary>
 
-The raw market dataset is generated locally and is intended to remain outside version control.
+<br>
 
-The development corpus can be regenerated with:
+<details>
+<summary>🔧 <b>Update 000</b> · npm → pnpm Migration</summary>
 
-```powershell
-uv run --project .\ml python -m ml.data.fetch_universe --period 5y
-```
+<br>
 
-### ✅ Milestone Result
+- **What:** JavaScript tooling moved from npm to pnpm.
+- **Result:** `pnpm-lock.yaml` is now the canonical lockfile.
 
-```text
-DATA INGESTION        ✅
-NORMALIZATION         ✅
-VALIDATION            ✅
-50-STOCK CORPUS       ✅
-COVERAGE AUDIT        ✅
-SESSION ALIGNMENT     ✅
+📖 **[Read the full update →](docs/updates/000-pnpm-migration.md)**
 
-P1 DATA FOUNDATION    🟢 COMPLETE
-P1 MODELING           🔴 NOT STARTED
-```
+</details>
 
-### 🔜 Next Engineering Phase
+<details>
+<summary>🚀 <b>Update 001</b> · ML Data Foundation</summary>
 
-**Target Definition + Leakage-Safe Feature Engineering**
+<br>
 
-The next phase will establish:
+- **What:** Initial ML data foundation established.
+- **Result:** Supports the data, target, feature and dataset-builder stages in the pipeline above.
 
-* 🎯 next-day forecasting targets
-* 🧮 feature construction
-* ⏱️ information cutoffs
-* 🛡️ leakage controls
-* 📅 time-aware validation
-* 📊 training-example generation
+📖 **[Read the full update →](docs/updates/001-ml-forecasting-foundation.md)**
 
-> **Milestone:** The data foundation is ready. The predictive modeling pipeline begins next.
+</details>
 
 </details>
 
 ---
+
+<details>
+<summary><b>🧠 Engineering Principles & Notes</b> (click to expand)</summary>
+
+<br>
+
+- **Reproducibility:** data prep and ML workflows should be repeatable.
+- **No leakage:** nothing available after the prediction cutoff may enter a training example.
+- **Time-aware validation:** chronological evaluation over random splits.
+- **Measurable performance:** changes backed by out-of-sample evaluation.
+- **Separation of concerns:** data, ML, backend and frontend stay separate.
+
+**Notes:** the initial market-data universe is a development universe. Raw market datasets are generated locally and kept out of version control.
+
+</details>
+
+---
+
+<div align="center">
+
+**📈 Market data → features → models → evaluation → forecasting**
+
+</div>
