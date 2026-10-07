@@ -23,9 +23,7 @@ def audit_file(path: Path) -> dict[str, object]:
         "first_date": dates.min(),
         "last_date": dates.max(),
         "unique_dates": dates.nunique(),
-        "duplicates": int(frame.duplicated(
-            subset=["ticker", "session_date"]
-        ).sum()),
+        "duplicates": int(frame.duplicated(subset=["ticker", "session_date"]).sum()),
         "missing_values": int(frame.isna().sum().sum()),
         "min_close": float(frame["close"].min()),
         "max_close": float(frame["close"].max()),
@@ -44,11 +42,7 @@ def audit_corpus(raw_dir: Path) -> pd.DataFrame:
 
     records = [audit_file(path) for path in files]
 
-    return (
-        pd.DataFrame(records)
-        .sort_values("ticker")
-        .reset_index(drop=True)
-    )
+    return pd.DataFrame(records).sort_values("ticker").reset_index(drop=True)
 
 
 def main() -> None:
@@ -67,25 +61,13 @@ def main() -> None:
     print(report["rows"].value_counts().sort_index().to_string())
 
     print("\nDATE COVERAGE:")
-    print(
-        report[
-            ["ticker", "rows", "first_date", "last_date"]
-        ].to_string(index=False)
-    )
+    print(report[["ticker", "rows", "first_date", "last_date"]].to_string(index=False))
 
     print("\nDUPLICATES:")
-    print(
-        report[
-            ["ticker", "duplicates", "unique_dates"]
-        ].to_string(index=False)
-    )
+    print(report[["ticker", "duplicates", "unique_dates"]].to_string(index=False))
 
     print("\nMISSING VALUES:")
-    print(
-        report[
-            ["ticker", "missing_values"]
-        ].to_string(index=False)
-    )
+    print(report[["ticker", "missing_values"]].to_string(index=False))
 
     print("\nPRICE / VOLUME RANGES:")
     print(
@@ -101,21 +83,11 @@ def main() -> None:
     )
 
     print("\nSUMMARY CHECKS:")
-    print(
-        f"UNIQUE ROW COUNTS: {report['rows'].nunique()}"
-    )
-    print(
-        f"UNIQUE START DATES: {report['first_date'].nunique()}"
-    )
-    print(
-        f"UNIQUE END DATES: {report['last_date'].nunique()}"
-    )
-    print(
-        f"TOTAL DUPLICATES: {int(report['duplicates'].sum())}"
-    )
-    print(
-        f"TOTAL MISSING VALUES: {int(report['missing_values'].sum())}"
-    )
+    print(f"UNIQUE ROW COUNTS: {report['rows'].nunique()}")
+    print(f"UNIQUE START DATES: {report['first_date'].nunique()}")
+    print(f"UNIQUE END DATES: {report['last_date'].nunique()}")
+    print(f"TOTAL DUPLICATES: {int(report['duplicates'].sum())}")
+    print(f"TOTAL MISSING VALUES: {int(report['missing_values'].sum())}")
 
     print("\nSTATUS: AUDIT COMPLETE")
 

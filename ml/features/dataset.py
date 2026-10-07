@@ -1,11 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Sequence
 
 import numpy as np
 import pandas as pd
-
 
 METADATA_COLUMNS: tuple[str, ...] = (
     "ticker",
@@ -53,24 +52,15 @@ def _validate_structure(
     required = set(METADATA_COLUMNS) | set(feature_columns) | set(target_columns)
     missing = required.difference(data.columns)
     if missing:
-        raise ValueError(
-            "Missing required columns: " + ", ".join(sorted(missing))
-        )
+        raise ValueError("Missing required columns: " + ", ".join(sorted(missing)))
 
     overlap = set(feature_columns) & set(target_columns)
     if overlap:
-        raise ValueError(
-            "Feature and target columns overlap: " + ", ".join(sorted(overlap))
-        )
+        raise ValueError("Feature and target columns overlap: " + ", ".join(sorted(overlap)))
 
-    leaked_feature_names = [
-        column for column in feature_columns if column.startswith(TARGET_PREFIX)
-    ]
+    leaked_feature_names = [column for column in feature_columns if column.startswith(TARGET_PREFIX)]
     if leaked_feature_names:
-        raise ValueError(
-            "Target-like columns cannot be used as features: "
-            + ", ".join(sorted(leaked_feature_names))
-        )
+        raise ValueError("Target-like columns cannot be used as features: " + ", ".join(sorted(leaked_feature_names)))
 
     if data[["ticker", "session_date"]].duplicated().any():
         raise ValueError("Duplicate ticker/session_date rows detected.")
@@ -85,9 +75,7 @@ def _validate_structure(
     chronological = data.assign(__parsed_session_date=parsed_dates)
     for ticker, ticker_frame in chronological.groupby("ticker", sort=False):
         if not ticker_frame["__parsed_session_date"].is_monotonic_increasing:
-            raise ValueError(
-                f"session_date must be chronological for ticker {ticker}."
-            )
+            raise ValueError(f"session_date must be chronological for ticker {ticker}.")
 
     for column in feature_columns + target_columns:
         if not pd.api.types.is_numeric_dtype(data[column]):
@@ -103,19 +91,13 @@ def validate_information_cutoff(
     """Reject information whose availability is after the prediction cutoff."""
     missing = {as_of_column, available_at_column}.difference(data.columns)
     if missing:
-        raise ValueError(
-            "Missing timestamp columns: " + ", ".join(sorted(missing))
-        )
+        raise ValueError("Missing timestamp columns: " + ", ".join(sorted(missing)))
 
     as_of = pd.to_datetime(data[as_of_column], errors="coerce", utc=True)
-    available_at = pd.to_datetime(
-        data[available_at_column], errors="coerce", utc=True
-    )
+    available_at = pd.to_datetime(data[available_at_column], errors="coerce", utc=True)
 
     if (as_of.isna() | available_at.isna()).any():
-        raise ValueError(
-            "Prediction and information timestamps must be valid datetimes."
-        )
+        raise ValueError("Prediction and information timestamps must be valid datetimes.")
 
     future_mask = available_at > as_of
     if future_mask.any():
@@ -157,10 +139,11 @@ def build_model_dataset(
         )
 
     frame = data.copy()
+    if "session_date" in frame.columns and "ticker" in frame.columns:
+        frame = frame.sort_values(["session_date", "ticker"]).reset_index(drop=True)
+
     numeric_columns = list(features + targets)
-    frame.loc[:, numeric_columns] = frame.loc[:, numeric_columns].apply(
-        pd.to_numeric, errors="coerce"
-    )
+    frame.loc[:, numeric_columns] = frame.loc[:, numeric_columns].apply(pd.to_numeric, errors="coerce")
 
     if np.isinf(frame.loc[:, list(features)].to_numpy(dtype=float)).any():
         raise ValueError("Feature columns contain non-finite values.")
@@ -174,9 +157,7 @@ def build_model_dataset(
     if drop_incomplete:
         selected = selected.dropna(subset=list(features + targets), how="any")
         if selected.empty:
-            raise ValueError(
-                "No complete model rows remain after missing-value filtering."
-            )
+            raise ValueError("No complete model rows remain after missing-value filtering.")
 
     metadata = selected.loc[:, list(METADATA_COLUMNS)].reset_index(drop=True)
     X = selected.loc[:, list(features)].reset_index(drop=True)

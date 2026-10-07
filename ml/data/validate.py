@@ -19,9 +19,7 @@ def validate_market_data(frame: pd.DataFrame) -> None:
     # ------------------------------------------------------------------
     # Schema
     # ------------------------------------------------------------------
-    missing_columns = [
-        column for column in CANONICAL_COLUMNS if column not in frame.columns
-    ]
+    missing_columns = [column for column in CANONICAL_COLUMNS if column not in frame.columns]
 
     if missing_columns:
         errors.append(f"Missing columns: {missing_columns}")
@@ -37,17 +35,13 @@ def validate_market_data(frame: pd.DataFrame) -> None:
     parsed_dates = pd.to_datetime(data["session_date"], errors="coerce")
 
     if parsed_dates.isna().any():
-        errors.append(
-            f"Invalid session_date values: {int(parsed_dates.isna().sum())}"
-        )
+        errors.append(f"Invalid session_date values: {int(parsed_dates.isna().sum())}")
 
     # ------------------------------------------------------------------
     # Tickers
     # ------------------------------------------------------------------
     if data["ticker"].isna().any():
-        errors.append(
-            f"Missing ticker values: {int(data['ticker'].isna().sum())}"
-        )
+        errors.append(f"Missing ticker values: {int(data['ticker'].isna().sum())}")
 
     ticker_values = data["ticker"].astype("string").str.strip()
 
@@ -61,10 +55,7 @@ def validate_market_data(frame: pd.DataFrame) -> None:
         numeric = pd.to_numeric(data[column], errors="coerce")
 
         if numeric.isna().any():
-            errors.append(
-                f"{column} contains {int(numeric.isna().sum())} "
-                "non-numeric or missing values."
-            )
+            errors.append(f"{column} contains {int(numeric.isna().sum())} non-numeric or missing values.")
             continue
 
         if not np.isfinite(numeric.to_numpy()).all():
@@ -101,9 +92,7 @@ def validate_market_data(frame: pd.DataFrame) -> None:
     )
 
     if invalid_ohlc.any():
-        errors.append(
-            f"Invalid OHLC relationships: {int(invalid_ohlc.sum())} rows."
-        )
+        errors.append(f"Invalid OHLC relationships: {int(invalid_ohlc.sum())} rows.")
 
     # ------------------------------------------------------------------
     # Duplicate sessions
@@ -114,10 +103,7 @@ def validate_market_data(frame: pd.DataFrame) -> None:
     )
 
     if duplicate_mask.any():
-        errors.append(
-            f"Duplicate ticker/session_date rows: "
-            f"{int(duplicate_mask.sum())}."
-        )
+        errors.append(f"Duplicate ticker/session_date rows: {int(duplicate_mask.sum())}.")
 
     # ------------------------------------------------------------------
     # Chronological ordering per ticker
@@ -126,18 +112,13 @@ def validate_market_data(frame: pd.DataFrame) -> None:
 
     for ticker, group in temp.groupby("ticker", sort=False):
         if not group["_parsed_date"].is_monotonic_increasing:
-            errors.append(
-                f"session_date is not monotonically increasing for {ticker}."
-            )
+            errors.append(f"session_date is not monotonically increasing for {ticker}.")
 
     # ------------------------------------------------------------------
     # Final result
     # ------------------------------------------------------------------
     if errors:
-        raise ValueError(
-            "Market-data validation failed:\n- "
-            + "\n- ".join(errors)
-        )
+        raise ValueError("Market-data validation failed:\n- " + "\n- ".join(errors))
 
 
 def validate_csv(input_path: Path) -> pd.DataFrame:
@@ -149,9 +130,7 @@ def validate_csv(input_path: Path) -> pd.DataFrame:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Validate canonical market-data CSV."
-    )
+    parser = argparse.ArgumentParser(description="Validate canonical market-data CSV.")
     parser.add_argument(
         "--input",
         type=Path,
@@ -166,11 +145,7 @@ def main() -> None:
     print("VALIDATION: PASS")
     print(f"ROWS: {len(data)}")
     print(f"COLUMNS: {', '.join(data.columns)}")
-    print(
-        "DATE RANGE: "
-        f"{data['session_date'].min()} -> "
-        f"{data['session_date'].max()}"
-    )
+    print(f"DATE RANGE: {data['session_date'].min()} -> {data['session_date'].max()}")
     print(f"TICKERS: {data['ticker'].nunique()}")
 
 

@@ -4,7 +4,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from ml.features.dataset import ModelDataset, build_model_dataset, validate_information_cutoff
+from ml.features.dataset import (
+    ModelDataset,
+    build_model_dataset,
+    validate_information_cutoff,
+)
 
 
 def make_data(rows: int = 8) -> pd.DataFrame:

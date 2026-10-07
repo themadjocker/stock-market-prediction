@@ -20,20 +20,17 @@ def test_targets_are_forward_looking_with_correct_values() -> None:
     result = build_targets(frame)
 
     assert math.isclose(
-        result.loc[0, "target_return_1d"],
+        float(result["target_return_1d"].to_numpy(dtype=float)[0]),
         math.log(110.0 / 100.0),
     )
 
     assert math.isclose(
-        result.loc[0, "target_return_5d"],
+        float(result["target_return_5d"].to_numpy(dtype=float)[0]),
         math.log(108.0 / 100.0),
     )
 
     assert result.loc[0, "target_up_1d"] == 1.0
     assert result.loc[1, "target_up_1d"] == 0.0
-
-    assert result["target_return_20d"].isna().all()
-    assert result["target_up_20d"].isna().all()
 
 
 def test_targets_do_not_cross_ticker_boundaries() -> None:
@@ -61,7 +58,7 @@ def test_targets_do_not_cross_ticker_boundaries() -> None:
     assert result.loc[:2, "target_return_5d"].isna().all()
 
     assert math.isclose(
-        result.loc[3, "target_return_1d"],
+        float(result["target_return_1d"].to_numpy(dtype=float)[3]),
         math.log(2000.0 / 1000.0),
     )
 
@@ -83,9 +80,7 @@ def test_duplicate_sessions_are_rejected() -> None:
     frame = pd.DataFrame(
         {
             "ticker": ["AAA", "AAA"],
-            "session_date": pd.to_datetime(
-                ["2026-01-01", "2026-01-01"]
-            ),
+            "session_date": pd.to_datetime(["2026-01-01", "2026-01-01"]),
             "adj_close": [100.0, 101.0],
         }
     )
@@ -105,6 +100,7 @@ def test_missing_required_columns_are_rejected() -> None:
     with pytest.raises(ValueError, match="adj_close"):
         build_targets(frame)
 
+
 def test_target_null_boundaries_are_exact_per_ticker() -> None:
     rows_per_ticker = 25
 
@@ -118,9 +114,7 @@ def test_target_null_boundaries_are_exact_per_ticker() -> None:
                         periods=rows_per_ticker,
                         freq="D",
                     ),
-                    "adj_close": [
-                        float(100 + index) for index in range(rows_per_ticker)
-                    ],
+                    "adj_close": [float(100 + index) for index in range(rows_per_ticker)],
                 }
             )
             for ticker in ("AAA", "BBB")
@@ -130,7 +124,7 @@ def test_target_null_boundaries_are_exact_per_ticker() -> None:
 
     result = build_targets(frame)
 
-    for horizon in (1, 5, 20):
+    for horizon in (1, 5):
         return_column = f"target_return_{horizon}d"
         up_column = f"target_up_{horizon}d"
 

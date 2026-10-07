@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import talib
-
+from talib import MA_Type
 
 TECHNICAL_FEATURE_COLUMNS = (
     "sma_10",
@@ -76,9 +76,7 @@ def _validate_input(data: pd.DataFrame) -> None:
 
     for ticker, ticker_frame in data.groupby("ticker", sort=False):
         if not ticker_frame["session_date"].is_monotonic_increasing:
-            raise ValueError(
-                f"session_date must be chronological for ticker {ticker}."
-            )
+            raise ValueError(f"session_date must be chronological for ticker {ticker}.")
 
 
 def _safe_divide(numerator: np.ndarray, denominator: np.ndarray) -> np.ndarray:
@@ -148,9 +146,9 @@ def build_technical_features(data: pd.DataFrame) -> pd.DataFrame:
             close,
             fastk_period=14,
             slowk_period=3,
-            slowk_matype=0,
+            slowk_matype=MA_Type.SMA,
             slowd_period=3,
-            slowd_matype=0,
+            slowd_matype=MA_Type.SMA,
         )
 
         adx_14 = talib.ADX(high, low, close, timeperiod=14)
@@ -163,7 +161,7 @@ def build_technical_features(data: pd.DataFrame) -> pd.DataFrame:
             timeperiod=20,
             nbdevup=2,
             nbdevdn=2,
-            matype=0,
+            matype=MA_Type.SMA,
         )
         bb_width_denominator = bb_middle
         bb_percent_b_denominator = bb_upper - bb_lower
@@ -211,9 +209,7 @@ def build_technical_features(data: pd.DataFrame) -> pd.DataFrame:
             frame.loc[positions, column] = values
 
     frame[list(TECHNICAL_FEATURE_COLUMNS)] = (
-        frame[list(TECHNICAL_FEATURE_COLUMNS)]
-        .replace([np.inf, -np.inf], np.nan)
-        .astype("float64")
+        frame[list(TECHNICAL_FEATURE_COLUMNS)].replace([np.inf, -np.inf], np.nan).astype("float64")
     )
 
     frame.index = original_index

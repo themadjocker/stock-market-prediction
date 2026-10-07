@@ -12,7 +12,6 @@ from pathlib import Path
 import pandas as pd
 import yfinance as yf
 
-
 CANONICAL_COLUMNS: tuple[str, ...] = (
     "session_date",
     "ticker",
@@ -61,16 +60,19 @@ def _flatten_ticker_columns(
             break
 
     if ticker_level is None:
-        raise ValueError(
-            f"Could not find ticker {ticker!r} in yfinance MultiIndex columns."
-        )
+        raise ValueError(f"Could not find ticker {ticker!r} in yfinance MultiIndex columns.")
 
-    return frame.xs(
+    result = frame.xs(
         ticker,
         axis=1,
         level=ticker_level,
         drop_level=True,
     )
+
+    if isinstance(result, pd.Series):
+        raise TypeError(f"Expected DataFrame after flattening ticker {ticker!r}, but received a Series.")
+
+    return result
 
 
 def normalize_ohlcv(
@@ -88,10 +90,7 @@ def normalize_ohlcv(
 
     missing_columns = set(COLUMN_MAP) - set(frame.columns)
     if missing_columns:
-        raise ValueError(
-            f"Missing expected market-data columns for {ticker}: "
-            f"{sorted(missing_columns)}"
-        )
+        raise ValueError(f"Missing expected market-data columns for {ticker}: {sorted(missing_columns)}")
 
     frame = frame.rename(columns=COLUMN_MAP)
 
@@ -111,7 +110,12 @@ def normalize_ohlcv(
     frame = frame.reset_index()
     frame.insert(1, "ticker", ticker)
 
-    return frame.loc[:, CANONICAL_COLUMNS]
+    result = frame.loc[:, list(CANONICAL_COLUMNS)]
+
+    if isinstance(result, pd.Series):
+        raise TypeError("Expected a DataFrame after selecting canonical columns.")
+
+    return result
 
 
 def fetch_ohlcv(
@@ -130,6 +134,9 @@ def fetch_ohlcv(
         progress=False,
     )
 
+    if not isinstance(raw, pd.DataFrame):
+        raise TypeError(f"Expected yfinance to return a DataFrame for {ticker!r}, got {type(raw).__name__}.")
+
     return normalize_ohlcv(raw, ticker)
 
 
@@ -144,9 +151,7 @@ def save_csv(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Download and normalize daily OHLCV data."
-    )
+    parser = argparse.ArgumentParser(description="Download and normalize daily OHLCV data.")
     parser.add_argument(
         "--ticker",
         required=True,

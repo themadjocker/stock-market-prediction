@@ -22,9 +22,7 @@ def make_prices(
 ) -> pd.DataFrame:
     dates = pd.date_range("2025-01-01", periods=periods, freq="B")
     base = (
-        100.0
-        + np.arange(periods, dtype=float) * 0.25
-        + 2.0 * np.sin(np.arange(periods, dtype=float) / 5.0)
+        100.0 + np.arange(periods, dtype=float) * 0.25 + 2.0 * np.sin(np.arange(periods, dtype=float) / 5.0)
     ) * multiplier
 
     return pd.DataFrame(
@@ -101,9 +99,7 @@ def test_market_relative_return_is_stock_minus_market() -> None:
         market_index=make_market(),
     )
 
-    expected = (
-        result["stock_return_5d_context"] - result["market_return_5d"]
-    )
+    expected = result["stock_return_5d_context"] - result["market_return_5d"]
 
     pd.testing.assert_series_equal(
         result["stock_vs_market_return_5d"],
@@ -127,9 +123,7 @@ def test_sector_context_isolated_by_sector() -> None:
         ["session_date", *SECTOR_CONTEXT_COLUMNS],
     ].reset_index(drop=True)
 
-    expected_aaa = aaa_only[
-        ["session_date", *SECTOR_CONTEXT_COLUMNS]
-    ].reset_index(drop=True)
+    expected_aaa = aaa_only[["session_date", *SECTOR_CONTEXT_COLUMNS]].reset_index(drop=True)
 
     pd.testing.assert_frame_equal(
         result_aaa,
@@ -161,15 +155,9 @@ def test_combined_context_adds_optional_cross_assets() -> None:
     )
     dates = make_market()["session_date"]
 
-    vix = pd.DataFrame(
-        {"session_date": dates, "close": np.linspace(12, 20, len(dates))}
-    )
-    usd_inr = pd.DataFrame(
-        {"session_date": dates, "close": np.linspace(83, 86, len(dates))}
-    )
-    crude = pd.DataFrame(
-        {"session_date": dates, "close": np.linspace(70, 80, len(dates))}
-    )
+    vix = pd.DataFrame({"session_date": dates, "close": np.linspace(12, 20, len(dates))})
+    usd_inr = pd.DataFrame({"session_date": dates, "close": np.linspace(83, 86, len(dates))})
+    crude = pd.DataFrame({"session_date": dates, "close": np.linspace(70, 80, len(dates))})
 
     result = build_context_features(
         stocks,
@@ -187,12 +175,8 @@ def test_combined_context_adds_optional_cross_assets() -> None:
 
     assert result.loc[later_rows, "usd_inr_return_1d"].notna().all()
     assert result.loc[later_rows, "crude_return_1d"].notna().all()
-    assert result.loc[
-        result["session_date"].eq(first_session), "usd_inr_return_1d"
-    ].isna().all()
-    assert result.loc[
-        result["session_date"].eq(first_session), "crude_return_1d"
-    ].isna().all()
+    assert result.loc[result["session_date"].eq(first_session), "usd_inr_return_1d"].isna().all()
+    assert result.loc[result["session_date"].eq(first_session), "crude_return_1d"].isna().all()
 
 
 def test_missing_cross_assets_are_kept_as_nan() -> None:

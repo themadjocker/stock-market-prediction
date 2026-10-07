@@ -37,14 +37,13 @@ def fetch_universe(
             successful.append(ticker)
 
             print(f"  ROWS: {len(data)}")
-            print(
-                f"  DATE RANGE: "
-                f"{data['session_date'].min()} -> "
-                f"{data['session_date'].max()}"
-            )
+            print(f"  DATE RANGE: {data['session_date'].min()} -> {data['session_date'].max()}")
             print(f"  SAVED: {output_path}")
 
-        except Exception as exc:
+        # Keep one ticker failure from aborting the whole universe download.
+        # This boundary intentionally records provider/validation/write failures
+        # per ticker and lets the caller fail the batch after processing all tickers.
+        except Exception as exc:  # noqa: BLE001
             failed[ticker] = str(exc)
             print(f"  FAILED: {exc}")
 
@@ -52,9 +51,7 @@ def fetch_universe(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Download and validate the development stock universe."
-    )
+    parser = argparse.ArgumentParser(description="Download and validate the development stock universe.")
     parser.add_argument(
         "--period",
         default="5y",

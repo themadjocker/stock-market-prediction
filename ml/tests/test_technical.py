@@ -17,9 +17,7 @@ def make_prices(
 ) -> pd.DataFrame:
     dates = pd.date_range("2020-01-01", periods=periods, freq="B")
     base = (
-        100.0
-        + np.arange(periods, dtype=float) * 0.15
-        + 2.0 * np.sin(np.arange(periods, dtype=float) / 7.0)
+        100.0 + np.arange(periods, dtype=float) * 0.15 + 2.0 * np.sin(np.arange(periods, dtype=float) / 7.0)
     ) * multiplier
 
     return pd.DataFrame(
@@ -39,9 +37,7 @@ def test_builds_expected_technical_columns() -> None:
 
     result = build_technical_features(data)
 
-    assert list(result.columns[-len(TECHNICAL_FEATURE_COLUMNS) :]) == list(
-        TECHNICAL_FEATURE_COLUMNS
-    )
+    assert list(result.columns[-len(TECHNICAL_FEATURE_COLUMNS) :]) == list(TECHNICAL_FEATURE_COLUMNS)
     assert len(result) == len(data)
 
 
@@ -115,12 +111,8 @@ def test_future_rows_cannot_change_earlier_features() -> None:
     changed = build_technical_features(mutated)
 
     pd.testing.assert_frame_equal(
-        baseline.loc[: cutoff - 1, list(TECHNICAL_FEATURE_COLUMNS)].reset_index(
-            drop=True
-        ),
-        changed.loc[: cutoff - 1, list(TECHNICAL_FEATURE_COLUMNS)].reset_index(
-            drop=True
-        ),
+        baseline.loc[: cutoff - 1, list(TECHNICAL_FEATURE_COLUMNS)].reset_index(drop=True),
+        changed.loc[: cutoff - 1, list(TECHNICAL_FEATURE_COLUMNS)].reset_index(drop=True),
         check_dtype=True,
     )
 
@@ -149,8 +141,6 @@ def test_no_unexpected_infinities_are_returned() -> None:
     data = make_prices("AAA")
     result = build_technical_features(data)
 
-    technical_values = result[list(TECHNICAL_FEATURE_COLUMNS)].to_numpy(
-        dtype=float
-    )
+    technical_values = result[list(TECHNICAL_FEATURE_COLUMNS)].to_numpy(dtype=float)
 
     assert not np.isinf(technical_values).any()

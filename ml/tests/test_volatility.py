@@ -51,24 +51,21 @@ def test_volatility_and_volume_features_have_expected_values() -> None:
     expected_volatility = pd.Series(daily_returns).std()
 
     assert math.isclose(
-        result.loc[3, "volatility_3d"],
+        float(result["volatility_3d"].to_numpy(dtype=float)[3]),
         expected_volatility,
     )
 
     expected_volume_mean = (1100.0 + 900.0 + 1200.0) / 3.0
 
     assert math.isclose(
-        result.loc[3, "volume_sma_3d"],
+        float(result["volume_sma_3d"].to_numpy(dtype=float)[3]),
         expected_volume_mean,
     )
 
-    expected_volume_zscore = (
-        (1200.0 - expected_volume_mean)
-        / pd.Series([1100.0, 900.0, 1200.0]).std()
-    )
+    expected_volume_zscore = (1200.0 - expected_volume_mean) / pd.Series([1100.0, 900.0, 1200.0]).std()
 
     assert math.isclose(
-        result.loc[3, "volume_zscore_3d"],
+        float(result["volume_zscore_3d"].to_numpy(dtype=float)[3]),
         expected_volume_zscore,
     )
 
@@ -147,14 +144,8 @@ def test_volatility_warmup_is_exact_per_ticker() -> None:
                         periods=rows_per_ticker,
                         freq="D",
                     ),
-                    "close": [
-                        float(100 + index)
-                        for index in range(rows_per_ticker)
-                    ],
-                    "volume": [
-                        float(1000 + 100 * index)
-                        for index in range(rows_per_ticker)
-                    ],
+                    "close": [float(100 + index) for index in range(rows_per_ticker)],
+                    "volume": [float(1000 + 100 * index) for index in range(rows_per_ticker)],
                 }
             )
             for ticker in ("AAA", "BBB")
@@ -232,9 +223,7 @@ def test_unsorted_data_is_rejected() -> None:
     frame = pd.DataFrame(
         {
             "ticker": ["AAA", "AAA"],
-            "session_date": pd.to_datetime(
-                ["2026-01-02", "2026-01-01"]
-            ),
+            "session_date": pd.to_datetime(["2026-01-02", "2026-01-01"]),
             "close": [100.0, 101.0],
             "volume": [1000.0, 1100.0],
         }

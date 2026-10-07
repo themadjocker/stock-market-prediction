@@ -32,12 +32,7 @@ def build_return_features(
     if not horizons:
         raise ValueError("At least one return horizon is required.")
 
-    if any(
-        not isinstance(horizon, int)
-        or isinstance(horizon, bool)
-        or horizon <= 0
-        for horizon in horizons
-    ):
+    if any(not isinstance(horizon, int) or isinstance(horizon, bool) or horizon <= 0 for horizon in horizons):
         raise ValueError("Return horizons must be positive integers.")
 
     if len(set(horizons)) != len(horizons):
@@ -76,15 +71,11 @@ def build_return_features(
 
     for ticker, ticker_frame in grouped:
         if not ticker_frame["session_date"].is_monotonic_increasing:
-            raise ValueError(
-                f"session_date must be chronological for ticker {ticker}."
-            )
+            raise ValueError(f"session_date must be chronological for ticker {ticker}.")
 
     for horizon in horizons:
         previous_close = grouped["close"].shift(horizon)
-        frame[f"log_return_{horizon}d"] = np.log(
-            frame["close"] / previous_close
-        )
+        frame[f"log_return_{horizon}d"] = np.log(frame["close"] / previous_close)
 
     previous_close = grouped["close"].shift(1)
 

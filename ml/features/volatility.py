@@ -3,7 +3,6 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-
 VOLATILITY_WINDOWS = (5, 20, 60)
 VOLUME_WINDOWS = (5, 20)
 
@@ -43,12 +42,7 @@ def build_volatility_volume_features(
         (volatility_windows, "volatility"),
         (volume_windows, "volume"),
     ):
-        if any(
-            not isinstance(window, int)
-            or isinstance(window, bool)
-            or window <= 0
-            for window in windows
-        ):
+        if any(not isinstance(window, int) or isinstance(window, bool) or window <= 0 for window in windows):
             raise ValueError(f"{name} windows must be positive integers.")
 
         if len(set(windows)) != len(windows):
@@ -101,9 +95,7 @@ def build_volatility_volume_features(
 
     for ticker, ticker_frame in grouped:
         if not ticker_frame["session_date"].is_monotonic_increasing:
-            raise ValueError(
-                f"session_date must be chronological for ticker {ticker}."
-            )
+            raise ValueError(f"session_date must be chronological for ticker {ticker}.")
 
     # ------------------------------------------------------------------
     # Volatility
@@ -111,8 +103,10 @@ def build_volatility_volume_features(
 
     previous_close = grouped["close"].shift(1)
 
-    daily_log_return = np.log(
-        frame["close"] / previous_close
+    daily_log_return = pd.Series(
+        np.log(frame["close"] / previous_close),
+        index=frame.index,
+        dtype="float64",
     )
 
     return_groups = daily_log_return.groupby(
@@ -122,7 +116,7 @@ def build_volatility_volume_features(
 
     for window in volatility_windows:
         frame[f"volatility_{window}d"] = return_groups.transform(
-            lambda series: series.rolling(
+            lambda series, window=window: series.rolling(
                 window=window,
                 min_periods=window,
             ).std()
@@ -134,9 +128,7 @@ def build_volatility_volume_features(
 
     previous_volume = grouped["volume"].shift(1)
 
-    frame["volume_change_1d"] = np.log(
-        frame["volume"] / previous_volume
-    )
+    frame["volume_change_1d"] = np.log(frame["volume"] / previous_volume)
 
     volume_groups = frame["volume"].groupby(
         frame["ticker"],
@@ -145,14 +137,14 @@ def build_volatility_volume_features(
 
     for window in volume_windows:
         volume_sma = volume_groups.transform(
-            lambda series: series.rolling(
+            lambda series, window=window: series.rolling(
                 window=window,
                 min_periods=window,
             ).mean()
         )
 
         volume_std = volume_groups.transform(
-            lambda series: series.rolling(
+            lambda series, window=window: series.rolling(
                 window=window,
                 min_periods=window,
             ).std()
@@ -160,8 +152,6 @@ def build_volatility_volume_features(
 
         frame[f"volume_sma_{window}d"] = volume_sma
 
-        frame[f"volume_zscore_{window}d"] = (
-            (frame["volume"] - volume_sma) / volume_std
-        )
+        frame[f"volume_zscore_{window}d"] = (frame["volume"] - volume_sma) / volume_std
 
     return frame

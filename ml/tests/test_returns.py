@@ -27,27 +27,27 @@ def test_return_features_have_correct_values() -> None:
     result = build_return_features(frame)
 
     assert math.isclose(
-        result.loc[1, "log_return_1d"],
+        float(result["log_return_1d"].to_numpy(dtype=float)[1]),
         math.log(100.0 / 110.0),
     )
 
     assert math.isclose(
-        result.loc[2, "log_return_2d"],
+        float(result["log_return_2d"].to_numpy(dtype=float)[2]),
         math.log(125.0 / 110.0),
     )
 
     assert math.isclose(
-        result.loc[1, "intraday_return"],
+        float(result["intraday_return"].to_numpy(dtype=float)[1]),
         math.log(100.0 / 110.0),
     )
 
     assert math.isclose(
-        result.loc[1, "overnight_gap"],
+        float(result["overnight_gap"].to_numpy(dtype=float)[1]),
         math.log(110.0 / 110.0),
     )
 
     assert math.isclose(
-        result.loc[0, "high_low_range"],
+        float(result["high_low_range"].to_numpy(dtype=float)[0]),
         math.log(112.0 / 98.0),
     )
 
@@ -166,9 +166,7 @@ def test_unsorted_data_is_rejected() -> None:
     frame = pd.DataFrame(
         {
             "ticker": ["AAA", "AAA"],
-            "session_date": pd.to_datetime(
-                ["2026-01-02", "2026-01-01"]
-            ),
+            "session_date": pd.to_datetime(["2026-01-02", "2026-01-01"]),
             "open": [100.0, 101.0],
             "high": [102.0, 103.0],
             "low": [98.0, 99.0],

@@ -3,7 +3,6 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-
 MARKET_CONTEXT_COLUMNS = (
     "market_return_1d",
     "market_return_5d",
@@ -43,12 +42,7 @@ CROSS_ASSET_COLUMNS = (
     "crude_return_1d",
 )
 
-ALL_CONTEXT_COLUMNS = (
-    MARKET_CONTEXT_COLUMNS
-    + SECTOR_CONTEXT_COLUMNS
-    + REGIME_COLUMNS
-    + CROSS_ASSET_COLUMNS
-)
+ALL_CONTEXT_COLUMNS = MARKET_CONTEXT_COLUMNS + SECTOR_CONTEXT_COLUMNS + REGIME_COLUMNS + CROSS_ASSET_COLUMNS
 
 _STOCK_REQUIRED_COLUMNS = {
     "ticker",
@@ -66,9 +60,7 @@ _INDEX_REQUIRED_COLUMNS = {
 def _validate_index_frame(data: pd.DataFrame, name: str) -> None:
     missing = _INDEX_REQUIRED_COLUMNS.difference(data.columns)
     if missing:
-        raise ValueError(
-            f"{name} is missing required columns: {', '.join(sorted(missing))}"
-        )
+        raise ValueError(f"{name} is missing required columns: {', '.join(sorted(missing))}")
 
     if data.empty:
         return
@@ -93,10 +85,7 @@ def _validate_index_frame(data: pd.DataFrame, name: str) -> None:
 def _validate_stock_frame(data: pd.DataFrame) -> None:
     missing = _STOCK_REQUIRED_COLUMNS.difference(data.columns)
     if missing:
-        raise ValueError(
-            f"Stock data is missing required columns: "
-            f"{', '.join(sorted(missing))}"
-        )
+        raise ValueError(f"Stock data is missing required columns: {', '.join(sorted(missing))}")
 
     if data.empty:
         return
@@ -106,27 +95,23 @@ def _validate_stock_frame(data: pd.DataFrame) -> None:
 
     for ticker, ticker_frame in data.groupby("ticker", sort=False):
         if not ticker_frame["session_date"].is_monotonic_increasing:
-            raise ValueError(
-                f"session_date must be chronological for ticker {ticker}."
-            )
+            raise ValueError(f"session_date must be chronological for ticker {ticker}.")
 
         values = pd.to_numeric(ticker_frame["close"], errors="coerce")
         if values.isna().any():
-            raise ValueError(
-                f"close contains missing or non-numeric values for ticker {ticker}."
-            )
+            raise ValueError(f"close contains missing or non-numeric values for ticker {ticker}.")
         if not np.isfinite(values.to_numpy(dtype=float)).all():
-            raise ValueError(
-                f"close contains non-finite values for ticker {ticker}."
-            )
+            raise ValueError(f"close contains non-finite values for ticker {ticker}.")
         if (values <= 0).any():
-            raise ValueError(
-                f"close must contain only positive values for ticker {ticker}."
-            )
+            raise ValueError(f"close must contain only positive values for ticker {ticker}.")
 
 
 def _rolling_return(series: pd.Series, horizon: int) -> pd.Series:
-    return np.log(series / series.shift(horizon))
+    return pd.Series(
+        np.log(series / series.shift(horizon)),
+        index=series.index,
+        dtype="float64",
+    )
 
 
 def _rolling_volatility(series: pd.Series, window: int) -> pd.Series:
@@ -148,12 +133,8 @@ def _attach_index_features(
     index["return_5d"] = _rolling_return(index["close"], 5)
     index["return_20d"] = _rolling_return(index["close"], 20)
     index["volatility_20d"] = _rolling_volatility(index["close"], 20)
-    index["sma_20"] = index["close"].rolling(
-        window=20, min_periods=20
-    ).mean()
-    index["sma_50"] = index["close"].rolling(
-        window=50, min_periods=50
-    ).mean()
+    index["sma_20"] = index["close"].rolling(window=20, min_periods=20).mean()
+    index["sma_50"] = index["close"].rolling(window=50, min_periods=50).mean()
     index["close_to_sma_20"] = index["close"] / index["sma_20"] - 1.0
     index["close_to_sma_50"] = index["close"] / index["sma_50"] - 1.0
 
@@ -223,11 +204,8 @@ def _sector_aggregate(
         .reset_index()
     )
 
-    sector_daily["sector_volatility_20d"] = (
-        sector_daily.groupby("sector", sort=False)["sector_return_1d"]
-        .transform(
-            lambda values: values.rolling(window=20, min_periods=20).std()
-        )
+    sector_daily["sector_volatility_20d"] = sector_daily.groupby("sector", sort=False)["sector_return_1d"].transform(
+        lambda values: values.rolling(window=20, min_periods=20).std()
     )
 
     return sector_daily
@@ -238,15 +216,6 @@ def build_market_context_features(
     *,
     market_index: pd.DataFrame,
 ) -> pd.DataFrame:
-    """
-    Build market-level context for each stock/date.
-
-    `market_index` should contain the benchmark used as the market context,
-    normally the NIFTY 50 daily series after normalization.
-
-    All joins are exact-date joins. Feature calculations use current/past
-    benchmark observations only.
-    """
     _validate_stock_frame(stock_data)
     _validate_index_frame(market_index, "market_index")
 
@@ -261,25 +230,13 @@ def build_market_context_features(
 
     stock_returns = frame.groupby("ticker", sort=False)["close"]
 
-    frame["stock_return_1d_context"] = stock_returns.transform(
-        lambda values: _rolling_return(values, 1)
-    )
-    frame["stock_return_5d_context"] = stock_returns.transform(
-        lambda values: _rolling_return(values, 5)
-    )
-    frame["stock_return_20d_context"] = stock_returns.transform(
-        lambda values: _rolling_return(values, 20)
-    )
+    frame["stock_return_1d_context"] = stock_returns.transform(lambda values: _rolling_return(values, 1))
+    frame["stock_return_5d_context"] = stock_returns.transform(lambda values: _rolling_return(values, 5))
+    frame["stock_return_20d_context"] = stock_returns.transform(lambda values: _rolling_return(values, 20))
 
-    frame["stock_vs_market_return_1d"] = (
-        frame["stock_return_1d_context"] - frame["market_return_1d"]
-    )
-    frame["stock_vs_market_return_5d"] = (
-        frame["stock_return_5d_context"] - frame["market_return_5d"]
-    )
-    frame["stock_vs_market_return_20d"] = (
-        frame["stock_return_20d_context"] - frame["market_return_20d"]
-    )
+    frame["stock_vs_market_return_1d"] = frame["stock_return_1d_context"] - frame["market_return_1d"]
+    frame["stock_vs_market_return_5d"] = frame["stock_return_5d_context"] - frame["market_return_5d"]
+    frame["stock_vs_market_return_20d"] = frame["stock_return_20d_context"] - frame["market_return_20d"]
 
     market_positive = (
         frame[["session_date", "ticker", "stock_return_1d_context"]]
@@ -321,9 +278,7 @@ def build_market_context_features(
     )
 
     rolling_vol = frame["market_volatility_20d"]
-    volatility_median = rolling_vol.expanding(
-        min_periods=60
-    ).median()
+    volatility_median = rolling_vol.expanding(min_periods=60).median()
     frame["market_regime_volatility"] = np.select(
         [
             rolling_vol > volatility_median * 1.5,
@@ -339,11 +294,6 @@ def build_market_context_features(
 def build_sector_context_features(
     stock_data: pd.DataFrame,
 ) -> pd.DataFrame:
-    """
-    Build equal-weight sector context directly from the stock universe.
-
-    Each sector feature is derived from the stocks belonging to that sector.
-    """
     _validate_stock_frame(stock_data)
 
     frame = stock_data.copy()
@@ -355,15 +305,15 @@ def build_sector_context_features(
 
     sector_daily = _sector_aggregate(frame)
 
-    frame["stock_return_1d_context"] = frame.groupby(
-        "ticker", sort=False
-    )["close"].transform(lambda values: _rolling_return(values, 1))
-    frame["stock_return_5d_context"] = frame.groupby(
-        "ticker", sort=False
-    )["close"].transform(lambda values: _rolling_return(values, 5))
-    frame["stock_return_20d_context"] = frame.groupby(
-        "ticker", sort=False
-    )["close"].transform(lambda values: _rolling_return(values, 20))
+    frame["stock_return_1d_context"] = frame.groupby("ticker", sort=False)["close"].transform(
+        lambda values: _rolling_return(values, 1)
+    )
+    frame["stock_return_5d_context"] = frame.groupby("ticker", sort=False)["close"].transform(
+        lambda values: _rolling_return(values, 5)
+    )
+    frame["stock_return_20d_context"] = frame.groupby("ticker", sort=False)["close"].transform(
+        lambda values: _rolling_return(values, 20)
+    )
 
     frame = frame.merge(
         sector_daily,
@@ -372,15 +322,9 @@ def build_sector_context_features(
         validate="many_to_one",
     )
 
-    frame["stock_vs_sector_return_1d"] = (
-        frame["stock_return_1d_context"] - frame["sector_return_1d"]
-    )
-    frame["stock_vs_sector_return_5d"] = (
-        frame["stock_return_5d_context"] - frame["sector_return_5d"]
-    )
-    frame["stock_vs_sector_return_20d"] = (
-        frame["stock_return_20d_context"] - frame["sector_return_20d"]
-    )
+    frame["stock_vs_sector_return_1d"] = frame["stock_return_1d_context"] - frame["sector_return_1d"]
+    frame["stock_vs_sector_return_5d"] = frame["stock_return_5d_context"] - frame["sector_return_5d"]
+    frame["stock_vs_sector_return_20d"] = frame["stock_return_20d_context"] - frame["sector_return_20d"]
 
     return frame.drop(
         columns=[
@@ -398,14 +342,6 @@ def add_cross_asset_context(
     usd_inr: pd.DataFrame | None = None,
     crude: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
-    """
-    Add optional cross-asset context using exact session-date alignment.
-
-    Expected schemas:
-      india_vix: session_date, close
-      usd_inr:   session_date, close
-      crude:     session_date, close
-    """
     frame = stock_data.copy()
 
     optional = {
@@ -425,16 +361,10 @@ def add_cross_asset_context(
         if name == "india_vix":
             values["india_vix"] = values["close"]
             values["india_vix_change_1d"] = values["india_vix"].pct_change()
-            values = values[
-                ["session_date", "india_vix", "india_vix_change_1d"]
-            ]
+            values = values[["session_date", "india_vix", "india_vix_change_1d"]]
         else:
-            values[f"{name}_return_1d"] = _rolling_return(
-                values["close"], 1
-            )
-            values = values[
-                ["session_date", f"{name}_return_1d"]
-            ]
+            values[f"{name}_return_1d"] = _rolling_return(values["close"], 1)
+            values = values[["session_date", f"{name}_return_1d"]]
 
         frame = frame.merge(
             values,

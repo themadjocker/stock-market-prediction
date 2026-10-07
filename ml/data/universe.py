@@ -23,7 +23,6 @@ DEV_UNIVERSE: tuple[str, ...] = (
     "AMAT",
     "MU",
     "TXN",
-
     # Financials
     "JPM",
     "BAC",
@@ -33,7 +32,6 @@ DEV_UNIVERSE: tuple[str, ...] = (
     "V",
     "MA",
     "BRK-B",
-
     # Healthcare
     "JNJ",
     "UNH",
@@ -42,19 +40,16 @@ DEV_UNIVERSE: tuple[str, ...] = (
     "ABBV",
     "PFE",
     "TMO",
-
     # Energy
     "XOM",
     "CVX",
     "COP",
-
     # Industrials
     "CAT",
     "DE",
     "GE",
     "HON",
     "BA",
-
     # Consumer
     "WMT",
     "COST",
@@ -63,11 +58,9 @@ DEV_UNIVERSE: tuple[str, ...] = (
     "KO",
     "PEP",
     "PG",
-
     # Communication / Media
     "DIS",
     "NFLX",
-
     # Utilities
     "NEE",
 )
